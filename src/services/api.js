@@ -2,9 +2,9 @@
  * Configuración base de la API
  * BACKEND: Cambiar esta URL según tu entorno
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL 
-  : (import.meta.env.DEV ? 'http://localhost:3000/api' : '');
+const API_BASE_URL = import.meta.env.DEV
+  ? 'http://localhost:3000/api'
+  : (import.meta.env.VITE_API_URL || '');
 
 /**
  * Configuración de headers por defecto
@@ -47,7 +47,6 @@ const api = {
    * @param {object} data - Datos a enviar
    */
   post: async (endpoint, data) => {
-    console.log('API_BASE_URL:', API_BASE_URL, 'endpoint:', endpoint);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: getAuthHeaders(),
