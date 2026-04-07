@@ -3,7 +3,7 @@
  * BACKEND: Cambiar esta URL según tu entorno
  */
 const API_BASE_URL = import.meta.env.DEV
-  ? 'http://192.168.88.10:3000/api'
+  ? 'https://api-gestion.srwangcr.tech/api'
   : (import.meta.env.VITE_API_URL || '');
 
 /**
