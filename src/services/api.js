@@ -3,7 +3,7 @@
  * BACKEND: Cambiar esta URL según tu entorno
  */
 const API_BASE_URL = import.meta.env.DEV
-  ? 'http://localhost:3000/api'
+  ? 'http://192.168.88.10:3000/api'
   : (import.meta.env.VITE_API_URL || '');
 
 /**
