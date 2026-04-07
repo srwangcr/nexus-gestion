@@ -47,6 +47,7 @@ const api = {
    * @param {object} data - Datos a enviar
    */
   post: async (endpoint, data) => {
+    console.log('API_BASE_URL:', API_BASE_URL, 'endpoint:', endpoint);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: getAuthHeaders(),
