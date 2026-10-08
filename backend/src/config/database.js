@@ -15,6 +15,9 @@ if (env.DATABASE_URL) {
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
+    ssl: env.NODE_ENV === 'production' ? {
+      rejectUnauthorized: false
+    } : false
   };
 } else {
   // Configuración individual
@@ -26,6 +29,7 @@ if (env.DATABASE_URL) {
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
+    ssl: false
   };
   
   // Solo agregar password si está definida
@@ -92,9 +96,6 @@ const testConnection = async () => {
     return false;
   }
 };
-ssl: env.NODE_ENV === 'production' ? {
-  rejectUnauthorized: false
-} : false
 module.exports = {
   pool,
   query,

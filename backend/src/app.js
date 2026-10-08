@@ -5,6 +5,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
@@ -16,11 +18,13 @@ const { notFound, errorHandler } = require('./middlewares/errorHandler');
 
 // Crear aplicación Express
 const app = express();
+const frontendPath = path.join(__dirname, '../../public');
+const hasFrontend = fs.existsSync(path.join(frontendPath, 'index.html'));
 
 // Middlewares de seguridad y utilidad
 app.use(helmet());
 app.use(cors({
-  origin: "*",                    // ← permite TODO (solo para pruebas!)
+  origin: process.env.CORS_ORIGIN || '*',
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: false              // credentials no funciona con origin: "*"
@@ -45,19 +49,26 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/suppliers', supplierRoutes);
 
-// Ruta raíz
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Bienvenido a la API de Gestión de Órdenes',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      orders: '/api/orders',
-      suppliers: '/api/suppliers',
-      health: '/api/health'
-    }
+if (hasFrontend) {
+  app.use(express.static(frontendPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    return res.sendFile(path.join(frontendPath, 'index.html'));
   });
-});
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      message: 'Bienvenido a la API de Gestión de Órdenes',
+      version: '1.0.0',
+      endpoints: {
+        auth: '/api/auth',
+        orders: '/api/orders',
+        suppliers: '/api/suppliers',
+        health: '/api/health'
+      }
+    });
+  });
+}
 
 // Middleware para rutas no encontradas
 app.use(notFound);
@@ -66,4 +77,3 @@ app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
-

@@ -90,7 +90,11 @@ const Suppliers = () => {
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
         <h2>{editingSupplier ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
-        <SupplierForm onSubmit={handleAddSupplier} initialData={editingSupplier} />
+        <SupplierForm
+          key={editingSupplier?.id ?? 'new'}
+          onSubmit={handleAddSupplier}
+          initialData={editingSupplier}
+        />
       </Modal>
     </div>
   );

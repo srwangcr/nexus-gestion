@@ -476,7 +476,7 @@ El servidor estará disponible en `http://localhost:3000`
 ```json
 {
   "start": "node server.js",
-  "dev": "nodemon server.js"
+  "dev": "node --watch server.js"
 }
 ```
 

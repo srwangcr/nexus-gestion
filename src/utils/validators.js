@@ -37,7 +37,7 @@ export const isRequired = (value) => {
  * @returns {boolean} true si es válido
  */
 export const isValidPhone = (phone) => {
-  const phoneRegex = /^[\d\s\-\+\(\)]{7,20}$/;
+  const phoneRegex = /^[\d\s()+-]{7,20}$/;
   return phoneRegex.test(phone);
 };
 

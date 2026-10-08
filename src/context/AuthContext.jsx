@@ -1,27 +1,25 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState } from 'react';
 
 /**
  * Contexto de autenticación para manejar el estado del usuario
  * BACKEND: Este contexto consume los endpoints de autenticación
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Verificar si hay un token guardado al cargar la app
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+  const storedToken = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
+  const [user, setUser] = useState(() => {
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      localStorage.removeItem('user');
+      return null;
     }
-    setLoading(false);
-  }, []);
+  });
+  const [token, setToken] = useState(storedToken);
 
   /**
    * Iniciar sesión
@@ -55,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       user,
       token,
-      loading,
+      loading: false,
       isAuthenticated,
       login,
       logout

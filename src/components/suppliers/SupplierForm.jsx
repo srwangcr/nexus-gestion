@@ -1,22 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './SupplierForm.css';
 
 const SupplierForm = ({ onSubmit, initialData = null }) => {
-  const [name, setName] = useState('');
-  const [contact, setContact] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-
-  useEffect(() => {
-    if (initialData) {
-      setName(initialData.name || '');
-      setContact(initialData.contact || '');
-      setEmail(initialData.email || '');
-      setPhone(initialData.phone || '');
-      setAddress(initialData.address || '');
-    }
-  }, [initialData]);
+  const [name, setName] = useState(initialData?.name || '');
+  const [contact, setContact] = useState(initialData?.contact || '');
+  const [email, setEmail] = useState(initialData?.email || '');
+  const [phone, setPhone] = useState(initialData?.phone || '');
+  const [address, setAddress] = useState(initialData?.address || '');
 
   const handleSubmit = (e) => {
     e.preventDefault();

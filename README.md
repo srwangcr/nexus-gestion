@@ -210,10 +210,132 @@ npm run dev
 npm run dev
 ```
 
+## 🐳 Cómo usar Nexus Gestión con Docker
+
+El `Dockerfile` compila el frontend y lo sirve desde el backend en un solo
+contenedor. PostgreSQL se ejecuta como un contenedor separado para conservar
+los datos aunque se actualice la aplicación.
+
+### Instalar Docker
+
+- **Windows:** instala [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
+  Activa WSL 2 cuando el instalador lo solicite y reinicia Docker Desktop.
+- **Linux:** instala Docker Engine siguiendo la guía oficial para tu
+  distribución: [Install Docker Engine](https://docs.docker.com/engine/install/).
+  Verifica la instalación con `docker --version`.
+
+### Linux (Bash)
+
+Desde la raíz del proyecto:
+
+```bash
+docker network create nexus-net
+docker volume create nexus-postgres-data
+
+docker run -d --name nexus-postgres \
+  --network nexus-net \
+  -e POSTGRES_DB=orders_db \
+  -e POSTGRES_USER=nexus \
+  -e POSTGRES_PASSWORD=cambia_esta_password \
+  -v nexus-postgres-data:/var/lib/postgresql/data \
+  postgres:15
+
+docker build -t nexus-gestion:latest .
+
+until docker exec nexus-postgres pg_isready -U nexus -d orders_db; do sleep 2; done
+docker exec -i nexus-postgres psql -U nexus -d orders_db \
+  < backend/src/db/migrations/001_initial_schema.sql
+
+docker run -d --name nexus-gestion \
+  --network nexus-net \
+  -p 3000:3000 \
+  -e DB_HOST=nexus-postgres \
+  -e DB_PORT=5432 \
+  -e DB_NAME=orders_db \
+  -e DB_USER=nexus \
+  -e DB_PASSWORD=cambia_esta_password \
+  -e CORS_ORIGIN=http://localhost:3000 \
+  -e JWT_SECRET=cambia_por_un_secreto_largo_y_unico \
+  nexus-gestion:latest
+```
+
+Abre `http://localhost:3000`. Comprueba el servicio con
+`http://localhost:3000/api/health`.
+
+### Windows (PowerShell)
+
+Abre PowerShell en la raíz del proyecto. Los comandos son los mismos para
+Windows 10/11 con Docker Desktop:
+
+```powershell
+docker network create nexus-net
+docker volume create nexus-postgres-data
+
+docker run -d --name nexus-postgres `
+  --network nexus-net `
+  -e POSTGRES_DB=orders_db `
+  -e POSTGRES_USER=nexus `
+  -e POSTGRES_PASSWORD=cambia_esta_password `
+  -v nexus-postgres-data:/var/lib/postgresql/data `
+  postgres:15
+
+docker build -t nexus-gestion:latest .
+
+do {
+  $ready = docker exec nexus-postgres pg_isready -U nexus -d orders_db 2>$null
+  if (-not $ready) { Start-Sleep -Seconds 2 }
+} until ($ready)
+
+Get-Content .\backend\src\db\migrations\001_initial_schema.sql |
+  docker exec -i nexus-postgres psql -U nexus -d orders_db
+
+docker run -d --name nexus-gestion `
+  --network nexus-net `
+  -p 3000:3000 `
+  -e DB_HOST=nexus-postgres `
+  -e DB_PORT=5432 `
+  -e DB_NAME=orders_db `
+  -e DB_USER=nexus `
+  -e DB_PASSWORD=cambia_esta_password `
+  -e CORS_ORIGIN=http://localhost:3000 `
+  -e JWT_SECRET=cambia_por_un_secreto_largo_y_unico `
+  nexus-gestion:latest
+```
+
+Si los contenedores ya existen, usa `docker start nexus-postgres nexus-gestion`.
+Para revisar errores usa `docker logs nexus-gestion` y para detenerlos
+`docker stop nexus-gestion nexus-postgres`.
+
+Si necesitas recrear los contenedores después de cambiar la imagen:
+
+```powershell
+docker rm -f nexus-gestion nexus-postgres
+docker network rm nexus-net
+```
+
+El volumen `nexus-postgres-data` no se elimina, por lo que los datos de
+PostgreSQL se conservan. No ejecutes `docker volume rm nexus-postgres-data`
+salvo que quieras borrar la base de datos.
+
+### Problemas comunes en Windows
+
+- Ejecuta Docker Desktop antes de usar PowerShell y verifica que aparezca
+  `Engine running`.
+- Ejecuta los comandos desde la raíz del repositorio, donde están
+  `Dockerfile` y la carpeta `backend`.
+- En PowerShell, el carácter `` ` `` al final de cada línea debe ser el último
+  carácter; no agregues espacios después de él.
+- Si aparece `Cannot connect to the Docker daemon`, inicia Docker Desktop.
+- Si el build muestra errores de red, actualiza Docker Desktop y comprueba que
+  WSL 2 esté habilitado. El mensaje `IPv4 forwarding is disabled` indica un
+  problema del motor Docker/WSL, no de Nexus Gestión.
+- Si el puerto 3000 está ocupado, cambia `-p 3000:3000` por
+  `-p 8080:3000` y abre `http://localhost:8080`.
+
 ## 💻 Uso
 
 ### Acceder a la aplicación
-- **Frontend:** http://localhost:5173 (desarrollo) o tu dominio de producción
+- **Frontend:** http://localhost:5173 en desarrollo o http://localhost:3000 con Docker
 - **Backend API:** http://localhost:3000
 - **Health Check:** http://localhost:3000/api/health
 
@@ -318,7 +440,7 @@ npm run test
 ### Backend
 | Script | Descripción |
 |--------|-------------|
-| `npm run dev` | Inicia con nodemon |
+| `npm run dev` | Inicia con recarga automática usando Node.js |
 | `npm start` | Inicia en producción |
 | `npm run test` | Ejecuta tests |
 
